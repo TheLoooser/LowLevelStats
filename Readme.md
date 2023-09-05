@@ -46,11 +46,15 @@ The folder structure should then look as follows (the data folder will be create
 ├── main.py                 # The main script
 └── README.md               # This file
 ```
+Install the required python packages:
+```
+pip install -r requirements.txt
+```
 
 ### Executing the program
 Run the main script and pass the summoner name of the player you are interested in as argument. E.g.
 ```
-python main.py TheŁoooser
+python main.py -s TheŁoooser
 ```
 
 ## Results

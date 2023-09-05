@@ -1,0 +1,4 @@
+seaborn
+requests
+tqdm
+python-dotenv
