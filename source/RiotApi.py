@@ -1,6 +1,8 @@
 import os
+import sys
 import time
 import requests
+from halo import Halo
 from tqdm import tqdm
 from dotenv import load_dotenv
 
@@ -13,6 +15,8 @@ api_match = 'https://europe.api.riotgames.com'
 NR_OF_REQUESTS = 0
 START = 0
 
+spinner = Halo(text='Getting match data from Riot Games API...', text_color='cyan', color='blue', spinner='line')
+
 
 def request(base_url, relative_url, parameters):
     global NR_OF_REQUESTS
@@ -24,26 +28,34 @@ def request(base_url, relative_url, parameters):
 
     # Limit requests per minute (max 50)
     if NR_OF_REQUESTS == 40:
-        tqdm.write("API LIMIT REACHED! Now we wait.")
+        spinner.color = 'red'
+        spinner.text_color = 'magenta'
+        spinner.text = 'Pausing... (API Limit reached)'
+
         while time.time() - START <= 60:
             time.sleep(1)
         NR_OF_REQUESTS = 0
         START = time.time()
-        tqdm.write("WAIT TIME OVER! Its go time.")
+
+        spinner.color = 'blue'
+        spinner.text_color = 'cyan'
+        spinner.text = 'Getting match data from Riot Games API...'
 
     return result.json()
 
 
-def get_information(summoner_name):
+def get_information(summoner_name, tag_line, queue_type):
     global START
     global NR_OF_REQUESTS
     begin = time.time()
     START = begin
     summoner_info = {}
+    queue_id = 420 if queue_type == 'RANKED_SOLO_5x5' else 440
 
     # GET SUMMONER
-    summoner = request(api, f'lol/summoner/v4/summoners/by-name/{summoner_name}', f'api_key={key}')
-    puuid = summoner['puuid']
+    account = request(api_match, f'riot/account/v1/accounts/by-riot-id/{summoner_name}/{tag_line}', f'api_key={key}')
+    puuid = account['puuid']
+    summoner = request(api, f'lol/summoner/v4/summoners/by-puuid/{puuid}', f'api_key={key}')
     summoner_info['level'] = summoner['summonerLevel']
 
     # GET RANK
@@ -52,13 +64,17 @@ def get_information(summoner_name):
 
     nr_of_matches = 0
     for queue in league_entry:
-        if queue['queueType'] == "RANKED_SOLO_5x5":
+        if queue['queueType'] == queue_type:
             nr_of_matches = queue['wins'] + queue['losses']
             summoner_info['rank'] = queue['tier']
             summoner_info['division'] = queue['rank']
             summoner_info['lp'] = queue['leaguePoints']
             summoner_info['games'] = nr_of_matches
             summoner_info['win'] = queue['wins'] / nr_of_matches * 100
+
+    if nr_of_matches == 0:
+        print("No matches haven been played by this player in the current split.")
+        sys.exit(0)
 
     # GET MATCH IDs
     # assert nr_of_matches <= 100
@@ -68,7 +84,7 @@ def get_information(summoner_name):
     while start < nr_of_matches:
         all_match_ids.extend(request(api_match,
                                      f'lol/match/v5/matches/by-puuid/{puuid}/ids',
-                                     f'queue=420&start={start}&count={count}&api_key={key}'
+                                     f'queue={queue_id}&start={start}&count={count}&api_key={key}'
                                      ))
         start += 100
         if nr_of_matches - start < 100:
@@ -79,8 +95,9 @@ def get_information(summoner_name):
         match_id1: [[puuid1, lvl, tier, rank, lp, win-%, lane], [], ...]
     }
     '''
+    spinner.start()
     matches = {}
-    for match_id in tqdm(all_match_ids):
+    for match_id in tqdm(all_match_ids, position=1):
         # GET MATCH
         match = request(api_match, f'lol/match/v5/matches/{match_id}', f'api_key={key}')
 
@@ -91,7 +108,7 @@ def get_information(summoner_name):
                 r = request(api, f"lol/league/v4/entries/by-summoner/{participant['summonerId']}", f'api_key={key}')
 
                 for queue in r:
-                    if queue['queueType'] == "RANKED_SOLO_5x5":
+                    if queue['queueType'] == queue_type:
                         player_info = [participant['puuid'], participant['summonerLevel'], queue['tier'], queue['rank'],
                                        queue['leaguePoints'], queue['wins'] / (queue['losses'] + queue['wins']),
                                        participant['teamPosition']]
@@ -100,5 +117,6 @@ def get_information(summoner_name):
 
             matches[match_id] = match_info
 
+    spinner.stop()
     print(f'Elapsed time: {time.time() - begin}')
     return summoner_info, matches

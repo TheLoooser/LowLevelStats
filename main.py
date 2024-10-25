@@ -17,8 +17,11 @@ import source.LevelPerRole
 if __name__ == '__main__':
     args = get_parser_args()
     summoner_name = args.summoner_name
+    tag_line = args.tag_line
+    queue_type = args.queue_type
+    queue_mapping = {'RANKED_SOLO_5x5': 'Solo/Duo', 'RANKED_FLEX_SR': 'Flex'}
 
-    summoner_info, matches = get_information(summoner_name)
+    summoner_info, matches = get_information(summoner_name, tag_line, queue_type)
 
     with open(f'data/{summoner_name}.pickle', 'wb') as handle:
         pickle.dump(summoner_info, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -48,7 +51,7 @@ if __name__ == '__main__':
                         wspace=0.1,
                         hspace=0.3)
     fig.text(0.5, 0.94, f"Level: {s_info['level']}, Rank: {s_info['rank']} {s_info['division']}, LP: {s_info['lp']}, "
-                        f"Queue: Solo/Duo, No. of games: {s_info['games']}, Win-%: {s_info['win']:.2f}",
+                        f"Queue: {queue_mapping[queue_type]}, No. of games: {s_info['games']}, Win-%: {s_info['win']:.2f}",
              fontsize=18, ha='center', fontweight='bold', fontfamily='Times New Roman')
     fig.text(0.5, 0.90, f"Level-Statistics: Min: {metrics['min']}, Max: {metrics['max']}, "
                         f"Avg: {metrics['avg']:.2f}, Median: {metrics['median']}", fontsize=18, ha='center')

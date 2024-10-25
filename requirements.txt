@@ -2,3 +2,7 @@ seaborn
 requests
 tqdm
 python-dotenv
+halo
+pandas
+matplotlib
+numpy

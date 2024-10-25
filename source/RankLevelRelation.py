@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
-TIERS = ['IRON', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER']
+TIERS = ['IRON', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'EMERALD', 'DIAMOND', 'MASTER', 'GRANDMASTER', 'CHALLENGER']
 DIVISIONS = ['IV', 'III', 'II', 'I']
 COLOUR = {
     'IRON': (161, 157, 148),
@@ -10,6 +10,7 @@ COLOUR = {
     'SILVER': (170, 169, 173),
     'GOLD': (255, 213, 0),
     'PLATINUM': (0, 230, 230),
+    'EMERALD': (100, 160, 70),
     'DIAMOND': (51, 85, 255),
     'MASTER': (153, 85, 187),
     'GRANDMASTER': (255, 51, 85),

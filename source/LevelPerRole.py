@@ -17,7 +17,7 @@ def create_plot(data, ax):
     df = df.reindex(index=['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'])
 
     palette = sns.color_palette("viridis", 5)
-    sns.barplot(x=df.index, y=df['level'], palette=palette)
+    sns.barplot(x=df.index, y=df['level'], palette=palette, hue=df.index)
     ax.tick_params(axis='x', which='major', pad=30)
 
     def get_position(name):
